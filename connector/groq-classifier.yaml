@@ -1,0 +1,123 @@
+swagger: '2.0'
+info:
+  title: Groq Classifier
+  description: Wraps the Groq chat completions endpoint for CaseRelay enquiry classification. API key authentication.
+  version: '1.0'
+host: api.groq.com
+basePath: /openai/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /chat/completions:
+    post:
+      summary: Classify enquiry
+      description: Sends an enquiry to a Groq model in JSON mode and returns the raw completion.
+      operationId: ClassifyEnquiry
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - model
+              - messages
+            properties:
+              model:
+                type: string
+                title: Model
+                description: Groq model ID
+                default: openai/gpt-oss-20b
+              messages:
+                type: array
+                title: Messages
+                description: System and user messages. The prompt must contain the word JSON.
+                items:
+                  type: object
+                  properties:
+                    role:
+                      type: string
+                      title: Role
+                    content:
+                      type: string
+                      title: Content
+              response_format:
+                type: object
+                title: Response format
+                properties:
+                  type:
+                    type: string
+                    title: Type
+                    default: json_object
+              temperature:
+                type: number
+                title: Temperature
+                default: 0
+              max_completion_tokens:
+                type: integer
+                title: Max completion tokens
+                description: Reasoning tokens count against this cap
+                default: 800
+              reasoning_effort:
+                type: string
+                title: Reasoning effort
+                description: low, medium or high
+                default: low
+      responses:
+        '200':
+          description: Completion returned
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                title: Completion ID
+              model:
+                type: string
+                title: Model
+              choices:
+                type: array
+                title: Choices
+                items:
+                  type: object
+                  properties:
+                    index:
+                      type: integer
+                      title: Index
+                    finish_reason:
+                      type: string
+                      title: Finish reason
+                    message:
+                      type: object
+                      title: Message
+                      properties:
+                        role:
+                          type: string
+                          title: Role
+                        content:
+                          type: string
+                          title: Content
+              usage:
+                type: object
+                title: Usage
+                properties:
+                  prompt_tokens:
+                    type: integer
+                    title: Prompt tokens
+                  completion_tokens:
+                    type: integer
+                    title: Completion tokens
+                  total_tokens:
+                    type: integer
+                    title: Total tokens
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: header
+    name: Authorization
+security:
+  - api_key: []

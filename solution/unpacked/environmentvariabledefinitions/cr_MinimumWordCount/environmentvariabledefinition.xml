@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="cr_MinimumWordCount">
+  <defaultvalue>8</defaultvalue>
+  <displayname default="Minimum Word Count">
+    <label description="Minimum Word Count" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000001</type>
+</environmentvariabledefinition>
