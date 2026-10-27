@@ -2,7 +2,7 @@
 
 Confidence-gated triage for legal client enquiries, built on the Microsoft Power Platform (Dataverse, Power Automate, custom connector) with an LLM classifier on Groq.
 
-Status: classification flow, evaluation harness and solution export are built and tested. The canvas review queue, Copilot Studio front end and security role testing are not built yet; see Limitations.
+Status: classification flow, evaluation harness, canvas intake and review queue, two security roles and the solution export are built and tested. The Reviewer role was tested with a second user. The Admin role is built but was not tested with a second user. The Copilot Studio agent was not built; see Limitations.
 
 ## Problem
 
@@ -17,6 +17,8 @@ See [docs/architecture.md](docs/architecture.md).
 - Dataverse: Case, Classification Run (every classification logged with raw signals), Evaluation Item.
 - Power Automate: `CaseRelay Classify` (live) and `CaseRelay Evaluate` (runs the labelled set through the same prompt and gate).
 - Custom connector: `connector/groq-classifier.yaml`, API key authentication (not OAuth).
+- Canvas app `CaseRelay Review Queue`: an intake screen that creates a case, and a review queue for escalated cases (claim, resolve with notes). Readable source is in `solution/canvas-src/`.
+- Security roles: `CaseRelay Reviewer` and `CaseRelay Admin`.
 - Environment variables: classifier model, confidence threshold, minimum word count.
 - Connection references: Dataverse and Groq, so the solution imports without credentials.
 
@@ -57,6 +59,17 @@ The trade is deliberate: more escalations in exchange for no silent errors on th
 
 The Groq key is entered in the connection only. The exported solution was scanned and contains no key; environment variables hold non-secret settings only (Secret-type variables need Azure Key Vault and are not used).
 
+Roles:
+
+- `CaseRelay Reviewer`: read and update Cases, create Cases (intake), claim and resolve. No access to Evaluation Item and no delete on Cases.
+- `CaseRelay Admin`: built, not tested with a second user.
+
+The Reviewer role was tested with a second user (CaseRelay Tester) in a private browser session. Results, with screenshots in [docs/evidence](docs/evidence/README.md): can read cases, can claim and resolve, can submit an enquiry; cannot read Evaluation Item; cannot delete a case.
+
+Finding from that test: the first Claim attempt failed with `prvAppendToUser` missing on the User table, because Assigned Reviewer is a lookup to User. The role needed User Read and Append To (Organization). A first fix that set Append instead of Append To did not work. Both are in the evidence folder.
+
+The canvas app reports save results from `Errors(Cases)`. An earlier version used `IfError`, which showed a success banner next to a real error.
+
 ## Limitations
 
 - Small sets (37 and 12 items), written by the author. Holdout percentages are indicative only.
@@ -65,7 +78,10 @@ The Groq key is entered in the connection only. The exported solution was scanne
 - Holdout 2 miss: H2-007 (neighbour's tree and an insurer liability dispute) gave no uncertainty signal.
 - Dev results for the gate are tuned. Holdout 1 informed v3 and is no longer clean.
 - Built in a personal developer tenant with no real users.
-- Not built yet: canvas review queue, Copilot Studio agent, security role testing with a second user. Nothing here claims them.
+- No Copilot Studio agent. Creating an agent returned "User license not found" in this personal tenant, and a tenant capacity trial did not clear it. The canvas intake screen and the flow take its place; nothing here claims an agent.
+- Admin role not tested with a second user.
+- Live runs CR-00010 to CR-00016 predate the v3 flow update and are labelled v1; CR-00017 onward use the committed v3 gate. The Classification Run table keeps both.
+- Evaluation runs are started by the owner from Power Automate, not from the canvas app.
 - Connector authentication is an API key.
 
 ## Repo layout
@@ -74,8 +90,8 @@ The Groq key is entered in the connection only. The exported solution was scanne
 connector/    Groq custom connector definition
 evaluation/   labelled sets, raw run export, analysis script, results
 prompts/      v1, v2, v3 system prompts
-solution/     exported unmanaged solution (zip and unpacked)
-docs/         architecture
+solution/     exported unmanaged solution 1.0.0.3 (zip and unpacked), canvas-src/ readable canvas formulas
+docs/         architecture, evidence/ (security and app test screenshots)
 ```
 
 ## Reproduce
