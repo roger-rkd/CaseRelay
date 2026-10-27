@@ -1,1 +1,0 @@
-{"api_key":{"type":"securestring","uiDefinition":{"displayName":"API Key (enter as: Bearer gsk_...)","description":"The API Key (enter as: Bearer gsk_...) for this api","tooltip":"Provide your API Key (enter as: Bearer gsk_...)","constraints":{"tabIndex":2,"clearText":false,"required":"true"}}}}
